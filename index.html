@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mandarin Study Guide</title>
+<style>
+  :root{
+    --bg:#f7f4ee; --surface:#ffffff; --surface-2:#fbf9f4;
+    --ink:#23201b; --muted:#6f6a60; --faint:#a59f93;
+    --border:#e7e1d6; --border-strong:#d9d2c4;
+    --accent:#b5462f; --accent-soft:#f0e3df;
+    --t1:#c62828; --t2:#e07b00; --t3:#2e7d32; --t4:#1565c0; --t5:#8a8378;
+    --shadow:0 1px 2px rgba(40,33,22,.05),0 8px 24px rgba(40,33,22,.05);
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  .hanzi,.ex-hanzi,.card-hanzi,.char-chip b{
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+  }
+  a{color:var(--accent)}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+
+  /* Header */
+  .app-header{background:linear-gradient(180deg,#fbf9f4,#f7f4ee);border-bottom:1px solid var(--border)}
+  .app-header .wrap{padding-top:30px;padding-bottom:22px}
+  .app-header h1{margin:0;font-size:30px;letter-spacing:-.02em}
+  .app-header h1 .zh{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;color:var(--accent);margin-right:10px}
+  .subtitle{margin:8px 0 0;color:var(--muted);font-size:14.5px}
+
+  /* Toolbar */
+  .toolbar{position:sticky;top:0;z-index:20;background:rgba(247,244,238,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+  .toolbar .wrap{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding-top:12px;padding-bottom:12px}
+  .toolbar input[type=search],.toolbar select{
+    font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--border-strong);
+    border-radius:10px;padding:8px 11px;outline:none;transition:border-color .15s,box-shadow .15s;
+  }
+  .toolbar input[type=search]{flex:1 1 240px;min-width:180px}
+  .toolbar input[type=search]:focus,.toolbar select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .toolbar select{cursor:pointer}
+  .chk{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;color:var(--muted);cursor:pointer;user-select:none}
+  .chk input{accent-color:var(--accent);width:15px;height:15px}
+  .btn{
+    font:inherit;cursor:pointer;background:var(--surface);color:var(--ink);
+    border:1px solid var(--border-strong);border-radius:10px;padding:8px 13px;transition:all .15s;
+  }
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.primary:hover{filter:brightness(1.05);color:#fff}
+  .count{margin-left:auto;color:var(--muted);font-size:13px;white-space:nowrap}
+
+  /* Section nav */
+  .section-nav{border-bottom:1px solid var(--border);background:var(--surface-2)}
+  .section-nav .wrap{display:flex;gap:6px;overflow-x:auto;padding-top:9px;padding-bottom:9px}
+  .section-nav a{
+    white-space:nowrap;text-decoration:none;color:var(--muted);font-size:13px;
+    padding:5px 11px;border-radius:999px;border:1px solid transparent;transition:all .15s;
+  }
+  .section-nav a:hover{background:var(--surface);border-color:var(--border-strong);color:var(--ink)}
+
+  /* Corrections banner */
+  .banner{margin:18px 0 4px;padding:11px 14px;background:var(--accent-soft);border:1px solid #e7cabf;border-radius:12px;color:#7a3322;font-size:13.5px}
+  .banner b{color:#5e2618}
+
+  main{padding:10px 0 60px}
+  section.cat{margin-top:26px}
+  section.cat h2{font-size:20px;margin:0 0 3px;letter-spacing:-.01em}
+  section.cat .intro{margin:0 0 14px;color:var(--muted);font-size:14px;max-width:70ch}
+  h3.subhead{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);margin:18px 0 8px;font-weight:600}
+
+  /* Table */
+  table.vocab{width:100%;border-collapse:separate;border-spacing:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:8px}
+  table.vocab thead th{
+    text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);
+    font-weight:600;padding:10px 14px;background:var(--surface-2);border-bottom:1px solid var(--border);
+  }
+  .c-caret{width:34px}
+  .c-pos{width:96px}
+  tr.row{cursor:pointer;transition:background .12s}
+  tr.row td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+  tr.row:hover{background:var(--surface-2)}
+  tr.row.expanded{background:var(--surface-2)}
+  tr.row.expanded td{border-bottom-color:transparent}
+  .hanzi{font-size:21px;font-weight:500;vertical-align:middle}
+  .badge{border:none;background:#fbeee9;color:#b5462f;font-size:12px;border-radius:7px;padding:2px 5px;margin-left:8px;cursor:help;line-height:1.4}
+  .cat-chip{font-size:11px;color:var(--faint);margin-top:3px}
+  td.c-pinyin{font-size:15.5px;font-weight:500;letter-spacing:.01em}
+  td.c-eng{color:var(--ink);font-size:14.5px}
+  td.c-pos{color:var(--muted);font-size:13px;font-style:italic}
+  .caret{display:inline-block;color:var(--faint);transition:transform .18s;font-size:12px}
+  tr.row.expanded .caret{transform:rotate(90deg);color:var(--accent)}
+  /* tone colors */
+  .t1{color:var(--t1)} .t2{color:var(--t2)} .t3{color:var(--t3)} .t4{color:var(--t4)} .t5{color:var(--t5)}
+
+  /* Detail row */
+  tr.detail{display:none}
+  tr.detail.open{display:table-row}
+  tr.detail>td{padding:0 14px 14px;border-bottom:1px solid var(--border);background:var(--surface-2)}
+  .detail-inner{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px 26px;padding:6px 2px 4px}
+  .d-block .d-label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--faint);font-weight:600;margin-bottom:4px}
+  .d-block p{margin:0 0 2px;font-size:14px}
+  .ex-hanzi{font-size:16px}
+  .ex-pinyin{color:var(--muted);font-size:13.5px}
+  .ex-eng{color:var(--ink);font-size:13.5px;font-style:italic}
+  .chars{display:flex;flex-wrap:wrap;gap:7px}
+  .char-chip{background:var(--surface);border:1px solid var(--border-strong);border-radius:8px;padding:4px 9px;font-size:13px}
+  .char-chip b{font-size:15px;margin-right:3px}
+  .d-block.correction p{color:#7a3322}
+  .empty{color:var(--muted);padding:30px 4px;text-align:center}
+  .muted{color:var(--muted);font-weight:400;font-size:14px}
+
+  /* Tone legend */
+  .legend{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:8px 0 2px;color:var(--muted);font-size:12.5px}
+  .legend .item{display:inline-flex;align-items:center;gap:5px}
+  .legend .swatch{font-weight:700}
+
+  /* Study mode */
+  body.study-active .toolbar,body.study-active .section-nav,body.study-active #tableView,body.study-active .banner{display:none}
+  #studyView{display:none}
+  body.study-active #studyView{display:block}
+  .study-wrap{max-width:640px;margin:0 auto;padding:30px 20px 60px;text-align:center}
+  .study-top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin-bottom:18px}
+  .study-progress{color:var(--muted);font-size:14px}
+  .card{
+    background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);
+    min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+    padding:34px 26px;cursor:pointer;user-select:none;transition:transform .12s;
+  }
+  .card:active{transform:scale(.995)}
+  .card-hanzi{font-size:64px;font-weight:500;line-height:1.1}
+  .card-prompt-eng{font-size:30px;font-weight:500}
+  .card-pos{color:var(--muted);font-style:italic;font-size:15px}
+  .card-pinyin{font-size:26px;font-weight:500}
+  .card-eng{font-size:19px}
+  .card-sub{margin-top:6px;border-top:1px dashed var(--border-strong);padding-top:14px;width:100%;max-width:440px}
+  .card-sub .lab{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--faint);font-weight:600;display:block;margin-bottom:3px}
+  .card-sub p{margin:0 0 8px;font-size:14px}
+  .card-ex .e1{font-size:16px}.card-ex .e2{color:var(--muted);font-size:13px}.card-ex .e3{font-style:italic;font-size:13px}
+  .flip-hint{color:var(--faint);font-size:12.5px;margin-top:2px}
+  .study-controls{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin-top:18px}
+  .study-meta{margin-top:14px;color:var(--muted);font-size:13px}
+  .known-pill{color:var(--t3);font-weight:600}
+
+  footer{border-top:1px solid var(--border);color:var(--muted);font-size:12.5px;padding:22px 0 50px;text-align:center}
+  .kbd{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;background:var(--surface);border:1px solid var(--border-strong);border-bottom-width:2px;border-radius:5px;padding:1px 5px;color:var(--ink)}
+
+  @media (max-width:640px){
+    .c-pos{display:none}
+    .detail-inner{grid-template-columns:1fr}
+    .count{margin-left:0;width:100%}
+    .card-hanzi{font-size:52px}
+  }
+  @media print{
+    .toolbar,.section-nav,#studyView,.legend,.btn,.banner{display:none!important}
+    tr.detail{display:table-row!important}
+    tr.detail>td{background:#fff}
+    table.vocab{box-shadow:none;break-inside:avoid}
+    body{background:#fff}
+  }
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="wrap">
+    <h1><span class="zh">中文</span>Mandarin Study Guide</h1>
+    <p class="subtitle" id="subtitle">Loading…</p>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="wrap">
+    <input id="search" type="search" placeholder="Search 汉字, pinyin (try “jianchi”), or English…" autocomplete="off" spellcheck="false">
+    <select id="categoryFilter" aria-label="Filter by category"></select>
+    <select id="posFilter" aria-label="Filter by part of speech"></select>
+    <select id="sortBy" aria-label="Sort">
+      <option value="topic">Sort: by topic</option>
+      <option value="pinyin">Sort: pinyin A–Z</option>
+      <option value="english">Sort: English A–Z</option>
+      <option value="pos">Sort: word type</option>
+    </select>
+    <label class="chk"><input type="checkbox" id="onlyCorrections">Only&nbsp;✏️</label>
+    <button class="btn" id="expandAll">Expand all</button>
+    <button class="btn primary" id="studyToggle">▶ Study mode</button>
+    <span class="count" id="count"></span>
+  </div>
+</div>
+
+<nav class="section-nav"><div class="wrap" id="sectionNav"></div></nav>
+
+<main class="wrap">
+  <div class="legend" id="legend">
+    <span>Tones:</span>
+    <span class="item"><span class="swatch t1">mā</span> 1st</span>
+    <span class="item"><span class="swatch t2">má</span> 2nd</span>
+    <span class="item"><span class="swatch t3">mǎ</span> 3rd</span>
+    <span class="item"><span class="swatch t4">mà</span> 4th</span>
+    <span class="item"><span class="swatch t5">ma</span> neutral</span>
+  </div>
+  <div id="banner"></div>
+  <div id="tableView"></div>
+</main>
+
+<section id="studyView">
+  <div class="study-wrap">
+    <div class="study-top">
+      <button class="btn" id="studyExit">← Back to list</button>
+      <button class="btn" id="studyDir">Prompt: 汉字 → meaning</button>
+      <button class="btn" id="studyShuffle">🔀 Shuffle</button>
+      <span class="study-progress" id="studyProgress"></span>
+    </div>
+    <div class="card" id="card"></div>
+    <div class="study-controls">
+      <button class="btn" id="studyPrev">← Prev</button>
+      <button class="btn primary" id="studyFlip">Flip</button>
+      <button class="btn" id="studyAgain">Again</button>
+      <button class="btn" id="studyGot">✓ Got it</button>
+      <button class="btn" id="studyNext">Next →</button>
+    </div>
+    <div class="study-meta" id="studyMeta"></div>
+    <div class="flip-hint"><span class="kbd">Space</span> flip · <span class="kbd">←</span>/<span class="kbd">→</span> navigate</div>
+  </div>
+</section>
+
+<footer class="wrap">
+  Generated from your Mandarin glossary · pinyin tone-colored · corrections flagged with ✏️ · single self-contained file, works offline.
+</footer>
+
+<script>
+const DATA = [{"id":"concepts","title":"1. General Concepts & Worldview","intro":"Broad concepts about the world, existence, and general states of being.","entries":[{"hanzi":"全世界","pinyin":"quán shì jiè","pinyinSyllables":[{"text":"quán","tone":2},{"text":"shì","tone":4},{"text":"jiè","tone":4}],"english":"the whole world; the entire world","partOfSpeech":"n.","subgroup":"","usageNote":"A noun phrase stressing totality — every part of, or everyone in, the world. Very often paired with 都 for emphasis (全世界都知道 'the whole world knows') and with 人民/人 (全世界人民 'people all over the world').","example":{"hanzi":"全世界都知道。","pinyin":"Quánshìjiè dōu zhīdào.","english":"The whole world knows."},"charBreakdown":[{"char":"全","meaning":"whole; entire"},{"char":"世","meaning":"world; era"},{"char":"界","meaning":"boundary; realm"}],"corrected":false,"correctionNote":""},{"hanzi":"革命","pinyin":"gé mìng","pinyinSyllables":[{"text":"gé","tone":2},{"text":"mìng","tone":4}],"english":"revolution; to revolt, to revolutionize","partOfSpeech":"n./v.","subgroup":"","usageNote":"Works as both noun and verb and carries a strong political/historical weight: 工业革命 'Industrial Revolution', 文化大革命 'Cultural Revolution'. Also used figuratively for a radical breakthrough (一场技术革命 'a technological revolution').","example":{"hanzi":"这是一场革命。","pinyin":"Zhè shì yì chǎng gémìng.","english":"This is a revolution."},"charBreakdown":[{"char":"革","meaning":"change; transform"},{"char":"命","meaning":"life; mandate; fate"}],"corrected":false,"correctionNote":""},{"hanzi":"成员","pinyin":"chéng yuán","pinyinSyllables":[{"text":"chéng","tone":2},{"text":"yuán","tone":2}],"english":"member (of a group, team, or organization)","partOfSpeech":"n.","subgroup":"","usageNote":"A fairly formal noun for a member of a defined group: 家庭成员 'family member', 团队成员 'team member', 成员国 'member state'. For a paying member of a club or site, Chinese prefers 会员 instead.","example":{"hanzi":"他是团队成员。","pinyin":"Tā shì tuánduì chéngyuán.","english":"He is a team member."},"charBreakdown":[{"char":"成","meaning":"become; complete"},{"char":"员","meaning":"member; person in a role"}],"corrected":false,"correctionNote":""},{"hanzi":"具有","pinyin":"jù yǒu","pinyinSyllables":[{"text":"jù","tone":4},{"text":"yǒu","tone":3}],"english":"to possess; to have (qualities or characteristics)","partOfSpeech":"v.","subgroup":"","usageNote":"A formal/written verb taking abstract objects — qualities, significance, features — not concrete things: 具有意义 'have significance', 具有特点 'have characteristics'. For ordinary 'have/own a thing', use 有 instead.","example":{"hanzi":"这具有重要意义。","pinyin":"Zhè jùyǒu zhòngyào yìyì.","english":"This has great significance."},"charBreakdown":[{"char":"具","meaning":"possess; tool"},{"char":"有","meaning":"to have"}],"corrected":false,"correctionNote":""},{"hanzi":"如此","pinyin":"rú cǐ","pinyinSyllables":[{"text":"rú","tone":2},{"text":"cǐ","tone":3}],"english":"so; thus; like this","partOfSpeech":"adv.","subgroup":"","usageNote":"Formal/literary equivalent of 这样 'like this/so'. Appears in fixed expressions: 原来如此 'so that's how it is', 如此...以至于 'so... that', and 如此而已 'that's all there is to it'.","example":{"hanzi":"原来如此。","pinyin":"Yuánlái rúcǐ.","english":"So that's how it is."},"charBreakdown":[{"char":"如","meaning":"like; as"},{"char":"此","meaning":"this"}],"corrected":false,"correctionNote":""},{"hanzi":"所谓","pinyin":"suǒ wèi","pinyinSyllables":[{"text":"suǒ","tone":3},{"text":"wèi","tone":4}],"english":"so-called; what is called","partOfSpeech":"adj.","subgroup":"","usageNote":"Precedes a noun, usually as 所谓的 + noun. Can be neutral ('what is referred to as X') but often carries a skeptical, dismissive tone, casting doubt on the label (所谓的专家 'so-called experts').","example":{"hanzi":"这就是所谓的爱。","pinyin":"Zhè jiùshì suǒwèi de ài.","english":"This is so-called love."},"charBreakdown":[{"char":"所","meaning":"that which"},{"char":"谓","meaning":"to call; to say"}],"corrected":false,"correctionNote":""},{"hanzi":"公","pinyin":"gōng","pinyinSyllables":[{"text":"gōng","tone":1}],"english":"public, communal; male (of animals)","partOfSpeech":"adj./n.","subgroup":"","usageNote":"As a single morpheme its core senses are 'public/communal' (opposite of 私 'private': 公共, 公平 'fair') and 'male' for animals (公鸡 'rooster', 公牛 'bull'). It also appears in respectful kin/elder terms (外公 'maternal grandfather', 公公 'father-in-law'), and rarely stands alone in modern speech.","example":{"hanzi":"这是一只公鸡。","pinyin":"Zhè shì yì zhī gōngjī.","english":"This is a rooster."},"charBreakdown":[{"char":"公","meaning":"public; common; male"}],"corrected":true,"correctionNote":"Replaced the 'grandpa' gloss with the more central 'male (of animals)' sense for the standalone character; the grandfather/elder use is noted in the usage note."},{"hanzi":"未来","pinyin":"wèi lái","pinyinSyllables":[{"text":"wèi","tone":4},{"text":"lái","tone":2}],"english":"the future; future (attributive)","partOfSpeech":"n./adj.","subgroup":"","usageNote":"Noun and attributive 'future'. Compared with 将来, 未来 is more formal and abstract (the future as a concept, often longer-term): 在未来 'in the future', 未来的世界 'the world of the future'. Use 将来 for casual talk about one's own future.","example":{"hanzi":"未来会更好。","pinyin":"Wèilái huì gèng hǎo.","english":"The future will be better."},"charBreakdown":[{"char":"未","meaning":"not yet"},{"char":"来","meaning":"to come"}],"corrected":false,"correctionNote":""},{"hanzi":"生活","pinyin":"shēng huó","pinyinSyllables":[{"text":"shēng","tone":1},{"text":"huó","tone":2}],"english":"life, daily living; to live","partOfSpeech":"n./v.","subgroup":"","usageNote":"Both a noun ('life, everyday living') and a verb ('to live'): 日常生活 'daily life', 生活方式 'lifestyle', 生活水平 'standard of living', 生活在城市 'to live in a city'. Distinct from 生命 (biological life) and 住 (to reside).","example":{"hanzi":"我的生活很简单。","pinyin":"Wǒ de shēnghuó hěn jiǎndān.","english":"My life is very simple."},"charBreakdown":[{"char":"生","meaning":"to live; be born"},{"char":"活","meaning":"to live; alive"}],"corrected":false,"correctionNote":""}],"issues":[]},{"id":"body","title":"2. Anatomy & Personal Health","intro":"The human body, the senses, and physical states.","entries":[{"hanzi":"牙齿","pinyin":"yáchǐ","pinyinSyllables":[{"text":"yá","tone":2},{"text":"chǐ","tone":3}],"english":"teeth; tooth","partOfSpeech":"n.","subgroup":"The Body & Senses","usageNote":"The standard written/formal word for teeth; in everyday speech 牙 (yá) alone is also very common. Common collocations: 刷牙齿 (brush teeth), 牙齿痛 (toothache).","example":{"hanzi":"我的牙齿很白。","pinyin":"Wǒ de yáchǐ hěn bái.","english":"My teeth are very white."},"charBreakdown":[{"char":"牙","meaning":"tooth"},{"char":"齿","meaning":"tooth"}],"corrected":false,"correctionNote":""},{"hanzi":"舌头","pinyin":"shétou","pinyinSyllables":[{"text":"shé","tone":2},{"text":"tou","tone":5}],"english":"tongue","partOfSpeech":"n.","subgroup":"The Body & Senses","usageNote":"The everyday colloquial word for the tongue; 头 is a neutral-tone noun suffix here, not 'head'. Note 舌头 refers to the body part, not language (which is 语言).","example":{"hanzi":"他伸出舌头。","pinyin":"Tā shēn chū shétou.","english":"He sticks out his tongue."},"charBreakdown":[{"char":"舌","meaning":"tongue"},{"char":"头","meaning":"noun suffix"}],"corrected":false,"correctionNote":""},{"hanzi":"眼睛","pinyin":"yǎnjing","pinyinSyllables":[{"text":"yǎn","tone":3},{"text":"jing","tone":5}],"english":"eye(s)","partOfSpeech":"n.","subgroup":"The Body & Senses","usageNote":"睛 is pronounced with a neutral tone (jing), distinguishing 眼睛 'eye' from the look-alike 眼镜 'glasses' (yǎnjìng). Common collocations: 大眼睛 (big eyes), 闭上眼睛 (close one's eyes).","example":{"hanzi":"她的眼睛很大。","pinyin":"Tā de yǎnjing hěn dà.","english":"Her eyes are very big."},"charBreakdown":[{"char":"眼","meaning":"eye"},{"char":"睛","meaning":"eyeball"}],"corrected":true,"correctionNote":"Fixed pinyin to neutral-tone 'yǎnjing' (not 'yǎnjìng') and narrowed gloss to 'eye'; the 'glasses' sense is the separate word 眼镜, added as its own entry."},{"hanzi":"眼镜","pinyin":"yǎnjìng","pinyinSyllables":[{"text":"yǎn","tone":3},{"text":"jìng","tone":4}],"english":"glasses; spectacles","partOfSpeech":"n.","subgroup":"The Body & Senses","usageNote":"Distinct from 眼睛 'eye': here 镜 means 'lens/mirror' and keeps its full 4th tone (jìng). Measured with 副 (yī fù yǎnjìng, a pair of glasses); 戴眼镜 means 'to wear glasses'.","example":{"hanzi":"我要戴眼镜。","pinyin":"Wǒ yào dài yǎnjìng.","english":"I need to wear glasses."},"charBreakdown":[{"char":"眼","meaning":"eye"},{"char":"镜","meaning":"lens; mirror"}],"corrected":true,"correctionNote":"Added as a new entry: the original 眼睛 merged 'eye' and 'glasses'; 'glasses' is the separate word 眼镜 (yǎnjìng)."},{"hanzi":"耳朵","pinyin":"ěrduo","pinyinSyllables":[{"text":"ěr","tone":3},{"text":"duo","tone":5}],"english":"ear(s)","partOfSpeech":"n.","subgroup":"The Body & Senses","usageNote":"The standard everyday word for ear; 朵 is a neutral-tone suffix here. Common collocations: 大耳朵 (big ears), 耳朵疼 (earache).","example":{"hanzi":"兔子的耳朵很长。","pinyin":"Tùzi de ěrduo hěn cháng.","english":"The rabbit's ears are very long."},"charBreakdown":[{"char":"耳","meaning":"ear"},{"char":"朵","meaning":"suffix (cf. classifier for flowers/ears)"}],"corrected":false,"correctionNote":""},{"hanzi":"胸","pinyin":"xiōng","pinyinSyllables":[{"text":"xiōng","tone":1}],"english":"chest; thorax; bosom","partOfSpeech":"n.","subgroup":"The Body & Senses","usageNote":"Refers to the chest/torso front; often appears in compounds like 胸口 (chest area), 胸部 (chest/breast region), and figuratively 胸怀 (broad-mindedness).","example":{"hanzi":"他胸口有点疼。","pinyin":"Tā xiōngkǒu yǒudiǎn téng.","english":"His chest hurts a little."},"charBreakdown":[{"char":"胸","meaning":"chest; thorax"}],"corrected":false,"correctionNote":""},{"hanzi":"毛","pinyin":"máo","pinyinSyllables":[{"text":"máo","tone":2}],"english":"hair (body/animal); fur; feather; wool","partOfSpeech":"n.","subgroup":"The Body & Senses","usageNote":"Refers to fine body hair, fur, or feathers, NOT head hair (which is 头发). Also a measure of money (1 毛 = 0.1 yuan) and a common surname; collocations: 羊毛 (wool), 毛巾 (towel).","example":{"hanzi":"这只猫的毛很软。","pinyin":"Zhè zhī māo de máo hěn ruǎn.","english":"This cat's fur is very soft."},"charBreakdown":[{"char":"毛","meaning":"hair; fur; feather"}],"corrected":false,"correctionNote":""},{"hanzi":"睡不着","pinyin":"shuì bu zháo","pinyinSyllables":[{"text":"shuì","tone":4},{"text":"bu","tone":5},{"text":"zháo","tone":2}],"english":"can't fall asleep; unable to sleep","partOfSpeech":"phrase","subgroup":"Health & Physical States","usageNote":"A potential complement: 睡 (sleep) + 不着 (unable to achieve the result). 着 here is zháo 'to manage to', not zhe. The 不 takes a neutral tone in this verb-complement structure; the positive form is 睡得着 (able to fall asleep).","example":{"hanzi":"我晚上睡不着。","pinyin":"Wǒ wǎnshang shuì bu zháo.","english":"I can't fall asleep at night."},"charBreakdown":[{"char":"睡","meaning":"sleep"},{"char":"不","meaning":"not; unable"},{"char":"着","meaning":"to manage to (result)"}],"corrected":true,"correctionNote":"Adjusted 不 to neutral tone (bu) in this potential-complement structure; the original 'shuì bù zháo' over-marked 不."},{"hanzi":"急","pinyin":"jí","pinyinSyllables":[{"text":"jí","tone":2}],"english":"anxious; impatient; urgent; to worry","partOfSpeech":"adj.","subgroup":"Health & Physical States","usageNote":"Describes both a feeling (anxious/impatient) and a situation (urgent/pressing). Common uses: 别急 (don't worry/rush), 急事 (urgent matter), 着急 (to feel anxious).","example":{"hanzi":"别急，慢慢来。","pinyin":"Bié jí, mànman lái.","english":"Don't worry, take your time."},"charBreakdown":[{"char":"急","meaning":"anxious; urgent"}],"corrected":false,"correctionNote":""},{"hanzi":"休息","pinyin":"xiūxi","pinyinSyllables":[{"text":"xiū","tone":1},{"text":"xi","tone":5}],"english":"to rest; to take a break","partOfSpeech":"v.","subgroup":"Health & Physical States","usageNote":"The second syllable 息 is neutral-toned (xi). Used for resting or taking time off; collocations: 休息一下 (rest a bit), 好好休息 (rest well).","example":{"hanzi":"你应该多休息。","pinyin":"Nǐ yīnggāi duō xiūxi.","english":"You should rest more."},"charBreakdown":[{"char":"休","meaning":"rest; cease"},{"char":"息","meaning":"breath; rest"}],"corrected":false,"correctionNote":""},{"hanzi":"离","pinyin":"lí","pinyinSyllables":[{"text":"lí","tone":2}],"english":"from (distance/separation); to be apart from; to leave","partOfSpeech":"prep./v.","subgroup":"Health & Physical States","usageNote":"As a preposition it marks distance/separation between two points: A 离 B 远/近 (A is far/near from B). As a verb it means to leave/part, as in 离开 (to depart).","example":{"hanzi":"学校离我家很近。","pinyin":"Xuéxiào lí wǒ jiā hěn jìn.","english":"The school is very close to my home."},"charBreakdown":[{"char":"离","meaning":"to be apart from; leave"}],"corrected":false,"correctionNote":""}],"issues":[]},{"id":"business","title":"3. Business, Development & Communication","intro":"Terms for organizational, developmental, and communicative contexts.","entries":[{"hanzi":"发展","pinyin":"fā zhǎn","pinyinSyllables":[{"text":"fā","tone":1},{"text":"zhǎn","tone":3}],"english":"to develop; development","partOfSpeech":"v./n.","subgroup":"","usageNote":"Used for large-scale growth of economies, companies, careers, and societies, not for developing film or skills in a hands-on sense. Common collocations: 经济发展 (economic development), 发展中国家 (developing country).","example":{"hanzi":"公司发展得很快。","pinyin":"Gōngsī fāzhǎn de hěn kuài.","english":"The company is developing very fast."},"charBreakdown":[{"char":"发","meaning":"issue forth; emit"},{"char":"展","meaning":"unfold; expand"}],"corrected":true,"correctionNote":"English refined from bare 'Develop' to verb/noun gloss 'to develop; development'; pinyin tones unchanged."},{"hanzi":"准备","pinyin":"zhǔn bèi","pinyinSyllables":[{"text":"zhǔn","tone":3},{"text":"bèi","tone":4}],"english":"to prepare; to plan to","partOfSpeech":"v.","subgroup":"","usageNote":"Besides 'prepare', it commonly means 'to plan/intend to' before another verb, e.g. 我准备明天走 (I plan to leave tomorrow). Frequent object: 准备好 (be ready), 做准备 (make preparations).","example":{"hanzi":"我在准备晚饭。","pinyin":"Wǒ zài zhǔnbèi wǎnfàn.","english":"I am preparing dinner."},"charBreakdown":[{"char":"准","meaning":"accurate; allow"},{"char":"备","meaning":"prepare; be ready"}],"corrected":true,"correctionNote":"English expanded to note the common 'plan to' sense; pinyin tones unchanged."},{"hanzi":"检查","pinyin":"jiǎn chá","pinyinSyllables":[{"text":"jiǎn","tone":3},{"text":"chá","tone":2}],"english":"to check; to inspect; examination","partOfSpeech":"v./n.","subgroup":"","usageNote":"Implies careful inspection for problems or errors — used for medical exams (身体检查), homework, equipment, and security. More thorough than a casual 'look'; pairs with 仔细 (carefully).","example":{"hanzi":"请检查一下作业。","pinyin":"Qǐng jiǎnchá yíxià zuòyè.","english":"Please check the homework."},"charBreakdown":[{"char":"检","meaning":"examine; inspect"},{"char":"查","meaning":"investigate; look into"}],"corrected":true,"correctionNote":"English broadened to 'to check; to inspect; examination' to capture noun use; pinyin tones unchanged."},{"hanzi":"办公","pinyin":"bàn gōng","pinyinSyllables":[{"text":"bàn","tone":4},{"text":"gōng","tone":1}],"english":"to work (in an office); to handle official business","partOfSpeech":"v.","subgroup":"","usageNote":"A verb-object compound (literally 'handle public affairs') describing doing office/administrative work. Most often seen in 办公室 (office) and 办公楼 (office building) rather than standing alone.","example":{"hanzi":"他在家办公。","pinyin":"Tā zài jiā bàngōng.","english":"He works (does office work) from home."},"charBreakdown":[{"char":"办","meaning":"handle; manage"},{"char":"公","meaning":"public; official"}],"corrected":true,"correctionNote":"English clarified as a verb ('to work in an office') rather than the noun phrase 'Office work'; pinyin tones unchanged."},{"hanzi":"类型","pinyin":"lèi xíng","pinyinSyllables":[{"text":"lèi","tone":4},{"text":"xíng","tone":2}],"english":"type; category; genre","partOfSpeech":"n.","subgroup":"","usageNote":"A more formal/abstract word for classification than 种 (kind); used for categories of things like 血型类型, 性格类型, or movie 类型 (genre). Pairs with 不同的 (different) and 各种 (all kinds of).","example":{"hanzi":"这是哪种类型?","pinyin":"Zhè shì nǎ zhǒng lèixíng?","english":"What type is this?"},"charBreakdown":[{"char":"类","meaning":"class; category"},{"char":"型","meaning":"model; pattern"}],"corrected":true,"correctionNote":"English expanded to 'type; category; genre' for accuracy; pinyin tones unchanged."},{"hanzi":"同事","pinyin":"tóng shì","pinyinSyllables":[{"text":"tóng","tone":2},{"text":"shì","tone":4}],"english":"colleague; co-worker","partOfSpeech":"n.","subgroup":"","usageNote":"Neutral term for a workplace colleague regardless of rank. Distinguish from 同学 (classmate); common collocation 老同事 (longtime colleague).","example":{"hanzi":"他是我的同事。","pinyin":"Tā shì wǒ de tóngshì.","english":"He is my colleague."},"charBreakdown":[{"char":"同","meaning":"same; together"},{"char":"事","meaning":"affair; work"}],"corrected":false,"correctionNote":""},{"hanzi":"务","pinyin":"wù","pinyinSyllables":[{"text":"wù","tone":4}],"english":"affairs; business; to be engaged in","partOfSpeech":"n.","subgroup":"","usageNote":"A bound morpheme that rarely stands alone; it appears in compounds meaning 'affairs/duties', e.g. 任务 (task), 服务 (service), 业务 (business operations), 家务 (housework). Learn it through these words rather than in isolation.","example":{"hanzi":"这是我的任务。","pinyin":"Zhè shì wǒ de rènwù.","english":"This is my task (duty)."},"charBreakdown":[{"char":"务","meaning":"affairs; duty"}],"corrected":true,"correctionNote":"English broadened to reflect that 务 is a bound morpheme meaning 'affairs/duty', not a freestanding word for 'business'; pinyin unchanged."},{"hanzi":"机会","pinyin":"jī huì","pinyinSyllables":[{"text":"jī","tone":1},{"text":"huì","tone":4}],"english":"opportunity; chance","partOfSpeech":"n.","subgroup":"","usageNote":"The standard word for a favorable chance or opportunity. Common collocations: 有机会 (have a chance), 抓住机会 (seize the opportunity), 机会难得 (a rare opportunity).","example":{"hanzi":"这是个好机会。","pinyin":"Zhè shì ge hǎo jīhuì.","english":"This is a good opportunity."},"charBreakdown":[{"char":"机","meaning":"opportunity; moment"},{"char":"会","meaning":"occasion; able to"}],"corrected":false,"correctionNote":""},{"hanzi":"电话","pinyin":"diàn huà","pinyinSyllables":[{"text":"diàn","tone":4},{"text":"huà","tone":4}],"english":"telephone; phone call","partOfSpeech":"n.","subgroup":"","usageNote":"Means both the device and a call. Key collocations: 打电话 (make a call), 接电话 (answer the phone), 电话号码 (phone number).","example":{"hanzi":"我给你打电话。","pinyin":"Wǒ gěi nǐ dǎ diànhuà.","english":"I'll give you a call."},"charBreakdown":[{"char":"电","meaning":"electric"},{"char":"话","meaning":"speech; talk"}],"corrected":true,"correctionNote":"English expanded to 'telephone; phone call' to include the common 'call' sense; pinyin tones unchanged."},{"hanzi":"笔记本电脑","pinyin":"bǐ jì běn diàn nǎo","pinyinSyllables":[{"text":"bǐ","tone":3},{"text":"jì","tone":4},{"text":"běn","tone":3},{"text":"diàn","tone":4},{"text":"nǎo","tone":3}],"english":"laptop computer","partOfSpeech":"n.","subgroup":"","usageNote":"The correct full word for a laptop; plain 笔记本 alone means 'notebook' and only means laptop by casual shortening in context. Often shortened in speech to 笔记本 when computers are the topic; measure word 台.","example":{"hanzi":"我买了新笔记本电脑。","pinyin":"Wǒ mǎi le xīn bǐjìběn diànnǎo.","english":"I bought a new laptop."},"charBreakdown":[{"char":"笔","meaning":"pen; writing"},{"char":"记","meaning":"record; note"},{"char":"本","meaning":"book; volume"},{"char":"电","meaning":"electric"},{"char":"脑","meaning":"brain"}],"corrected":true,"correctionNote":"Replaced incorrect 笔记本 ('notebook') with the proper word for laptop, 笔记本电脑; marked corrected per category instruction."},{"hanzi":"坚持","pinyin":"jiān chí","pinyinSyllables":[{"text":"jiān","tone":1},{"text":"chí","tone":2}],"english":"to persist; to insist on; to keep up","partOfSpeech":"v.","subgroup":"","usageNote":"Means to persevere with an activity or to firmly insist on a position. Often followed by a verb (坚持锻炼 keep exercising) or 下去 (坚持下去, keep it up / hold on).","example":{"hanzi":"你一定要坚持下去。","pinyin":"Nǐ yídìng yào jiānchí xiàqù.","english":"You must keep it up."},"charBreakdown":[{"char":"坚","meaning":"firm; solid"},{"char":"持","meaning":"hold; maintain"}],"corrected":true,"correctionNote":"English refined to verb form 'to persist; to insist on; to keep up'; pinyin tones unchanged."}],"issues":[]},{"id":"environment","title":"4. Environment & Daily Life","intro":"The physical environment, weather, and common daily activities and objects.","entries":[{"hanzi":"城市","pinyin":"chéng shì","pinyinSyllables":[{"text":"chéng","tone":2},{"text":"shì","tone":4}],"english":"city","partOfSpeech":"n.","subgroup":"Nature & Geography","usageNote":"The standard word for a city or urban area, contrasting with 农村 (countryside). Common collocations: 大城市 (big city), 城市生活 (city life).","example":{"hanzi":"我喜欢这个城市。","pinyin":"Wǒ xǐhuan zhège chéngshì.","english":"I like this city."},"charBreakdown":[{"char":"城","meaning":"city wall, town"},{"char":"市","meaning":"market, city"}],"corrected":false,"correctionNote":""},{"hanzi":"土地","pinyin":"tǔ dì","pinyinSyllables":[{"text":"tǔ","tone":3},{"text":"dì","tone":4}],"english":"land; soil","partOfSpeech":"n.","subgroup":"Nature & Geography","usageNote":"Refers to land or earth as a physical/agricultural resource, often in farming or property contexts. Common collocations: 肥沃的土地 (fertile land), 土地资源 (land resources).","example":{"hanzi":"这片土地很肥沃。","pinyin":"Zhè piàn tǔdì hěn féiwò.","english":"This piece of land is very fertile."},"charBreakdown":[{"char":"土","meaning":"soil, earth"},{"char":"地","meaning":"ground, land"}],"corrected":false,"correctionNote":""},{"hanzi":"自然","pinyin":"zì rán","pinyinSyllables":[{"text":"zì","tone":4},{"text":"rán","tone":2}],"english":"nature; natural","partOfSpeech":"n./adj.","subgroup":"Nature & Geography","usageNote":"Means both 'nature' (the natural world) and 'natural/at ease'. Common collocations: 大自然 (great nature), 自然环境 (natural environment), 很自然 (very natural/relaxed).","example":{"hanzi":"我喜欢大自然。","pinyin":"Wǒ xǐhuan dàzìrán.","english":"I love nature."},"charBreakdown":[{"char":"自","meaning":"self"},{"char":"然","meaning":"so, thus"}],"corrected":false,"correctionNote":""},{"hanzi":"雨季","pinyin":"yǔ jì","pinyinSyllables":[{"text":"yǔ","tone":3},{"text":"jì","tone":4}],"english":"rainy season","partOfSpeech":"n.","subgroup":"Nature & Geography","usageNote":"The wet/monsoon season, paired conceptually with 旱季 (dry season). Common collocations: 进入雨季 (enter the rainy season), 雨季来了 (the rainy season has come).","example":{"hanzi":"雨季要来了。","pinyin":"Yǔjì yào lái le.","english":"The rainy season is coming."},"charBreakdown":[{"char":"雨","meaning":"rain"},{"char":"季","meaning":"season"}],"corrected":false,"correctionNote":""},{"hanzi":"旱季","pinyin":"hàn jì","pinyinSyllables":[{"text":"hàn","tone":4},{"text":"jì","tone":4}],"english":"dry season","partOfSpeech":"n.","subgroup":"Nature & Geography","usageNote":"The dry season, the counterpart of 雨季 (rainy season), common in tropical climates. Common collocations: 旱季缺水 (water shortage in the dry season).","example":{"hanzi":"旱季很少下雨。","pinyin":"Hànjì hěn shǎo xiàyǔ.","english":"It rarely rains in the dry season."},"charBreakdown":[{"char":"旱","meaning":"drought, dry"},{"char":"季","meaning":"season"}],"corrected":false,"correctionNote":""},{"hanzi":"热带","pinyin":"rè dài","pinyinSyllables":[{"text":"rè","tone":4},{"text":"dài","tone":4}],"english":"the tropics; tropical","partOfSpeech":"n./adj.","subgroup":"Nature & Geography","usageNote":"Names the tropical climate zone; used attributively before nouns. Common collocations: 热带雨林 (tropical rainforest), 热带水果 (tropical fruit), 热带气候 (tropical climate).","example":{"hanzi":"香蕉是热带水果。","pinyin":"Xiāngjiāo shì rèdài shuǐguǒ.","english":"Bananas are a tropical fruit."},"charBreakdown":[{"char":"热","meaning":"hot"},{"char":"带","meaning":"zone, belt"}],"corrected":false,"correctionNote":""},{"hanzi":"雨林","pinyin":"yǔ lín","pinyinSyllables":[{"text":"yǔ","tone":3},{"text":"lín","tone":2}],"english":"rainforest","partOfSpeech":"n.","subgroup":"Nature & Geography","usageNote":"A rainforest; most often appears in the fuller phrase 热带雨林 (tropical rainforest). Common collocation: 保护雨林 (protect the rainforest).","example":{"hanzi":"雨林里有很多动物。","pinyin":"Yǔlín lǐ yǒu hěn duō dòngwù.","english":"There are many animals in the rainforest."},"charBreakdown":[{"char":"雨","meaning":"rain"},{"char":"林","meaning":"forest, woods"}],"corrected":false,"correctionNote":""},{"hanzi":"洋","pinyin":"yáng","pinyinSyllables":[{"text":"yáng","tone":2}],"english":"ocean","partOfSpeech":"n.","subgroup":"Nature & Geography","usageNote":"The literary/scientific word for an ocean; rarely stands alone in speech, appearing in names like 太平洋 (Pacific Ocean) and the compound 海洋 (ocean/sea). As an adjective it can also mean 'foreign/Western'.","example":{"hanzi":"太平洋很大。","pinyin":"Tàipíngyáng hěn dà.","english":"The Pacific Ocean is very large."},"charBreakdown":[{"char":"洋","meaning":"ocean"}],"corrected":false,"correctionNote":""},{"hanzi":"木头","pinyin":"mù tou","pinyinSyllables":[{"text":"mù","tone":4},{"text":"tou","tone":5}],"english":"wood (the material)","partOfSpeech":"n.","subgroup":"Nature & Geography","usageNote":"Everyday word for wood/timber as a material; the 头 suffix is neutral tone. Can colloquially describe a slow-witted, unresponsive person. Common collocation: 一块木头 (a piece of wood).","example":{"hanzi":"这张桌子是木头做的。","pinyin":"Zhè zhāng zhuōzi shì mùtou zuò de.","english":"This table is made of wood."},"charBreakdown":[{"char":"木","meaning":"tree, wood"},{"char":"头","meaning":"noun suffix"}],"corrected":false,"correctionNote":""},{"hanzi":"衣服","pinyin":"yī fu","pinyinSyllables":[{"text":"yī","tone":1},{"text":"fu","tone":5}],"english":"clothes; clothing","partOfSpeech":"n.","subgroup":"Daily Life & Objects","usageNote":"The general everyday word for clothes; 服 is neutral tone. Common collocations: 穿衣服 (put on/wear clothes), 洗衣服 (wash clothes), 买衣服 (buy clothes).","example":{"hanzi":"我要洗衣服。","pinyin":"Wǒ yào xǐ yīfu.","english":"I need to wash clothes."},"charBreakdown":[{"char":"衣","meaning":"clothing"},{"char":"服","meaning":"garment, dress"}],"corrected":false,"correctionNote":""},{"hanzi":"菜谱","pinyin":"cài pǔ","pinyinSyllables":[{"text":"cài","tone":4},{"text":"pǔ","tone":3}],"english":"recipe; cookbook","partOfSpeech":"n.","subgroup":"Daily Life & Objects","usageNote":"Primarily a recipe or cookbook (collection of dish instructions); the menu at a restaurant is more often 菜单. Common collocation: 按照菜谱做菜 (cook according to the recipe).","example":{"hanzi":"我照着菜谱做菜。","pinyin":"Wǒ zhàozhe càipǔ zuòcài.","english":"I cook following the recipe."},"charBreakdown":[{"char":"菜","meaning":"dish, vegetable"},{"char":"谱","meaning":"chart, manual"}],"corrected":true,"correctionNote":"Refined gloss: 菜谱 chiefly means recipe/cookbook; 'menu' is better expressed by 菜单."},{"hanzi":"座位","pinyin":"zuò wèi","pinyinSyllables":[{"text":"zuò","tone":4},{"text":"wèi","tone":4}],"english":"seat","partOfSpeech":"n.","subgroup":"Daily Life & Objects","usageNote":"A seat or place to sit (on a train, in a theater, etc.). Common collocations: 找座位 (find a seat), 没有座位 (no seats), 我的座位 (my seat).","example":{"hanzi":"这个座位有人吗？","pinyin":"Zhège zuòwèi yǒu rén ma?","english":"Is this seat taken?"},"charBreakdown":[{"char":"座","meaning":"seat, stand"},{"char":"位","meaning":"place, position"}],"corrected":false,"correctionNote":""},{"hanzi":"笔记本","pinyin":"bǐ jì běn","pinyinSyllables":[{"text":"bǐ","tone":3},{"text":"jì","tone":4},{"text":"běn","tone":3}],"english":"notebook (for writing)","partOfSpeech":"n.","subgroup":"Daily Life & Objects","usageNote":"Here it means a paper notebook for taking notes; the laptop sense requires the fuller 笔记本电脑. Common collocation: 一个笔记本 (a notebook), 在笔记本上写 (write in a notebook).","example":{"hanzi":"我买了一个笔记本。","pinyin":"Wǒ mǎi le yí ge bǐjìběn.","english":"I bought a notebook."},"charBreakdown":[{"char":"笔","meaning":"pen, writing"},{"char":"记","meaning":"record, note"},{"char":"本","meaning":"book, volume"}],"corrected":true,"correctionNote":"Per category guidance, glossed as 'notebook' (stationery); removed the 'laptop' sense, which is 笔记本电脑."},{"hanzi":"带","pinyin":"dài","pinyinSyllables":[{"text":"dài","tone":4}],"english":"to bring, to carry; belt, band","partOfSpeech":"v./n.","subgroup":"Daily Life & Objects","usageNote":"As a verb means to bring/carry/take along (people or things); as a noun means a belt or strap. Common collocations: 带钱 (bring money), 带孩子 (look after/bring a child), 皮带 (leather belt).","example":{"hanzi":"别忘了带钱。","pinyin":"Bié wàng le dài qián.","english":"Don't forget to bring money."},"charBreakdown":[{"char":"带","meaning":"to bring; belt"}],"corrected":false,"correctionNote":""},{"hanzi":"一次性","pinyin":"yí cì xìng","pinyinSyllables":[{"text":"yí","tone":2},{"text":"cì","tone":4},{"text":"xìng","tone":4}],"english":"disposable; one-time (use)","partOfSpeech":"adj.","subgroup":"Daily Life & Objects","usageNote":"Describes single-use/disposable items or one-off actions; attributive before a noun. Note tone sandhi: 一 is yì in isolation but here pronounced yí before the 4th-tone 次. Common collocations: 一次性筷子 (disposable chopsticks), 一次性付清 (pay off in one lump sum).","example":{"hanzi":"这是一次性筷子。","pinyin":"Zhè shì yícìxìng kuàizi.","english":"These are disposable chopsticks."},"charBreakdown":[{"char":"一","meaning":"one"},{"char":"次","meaning":"time, occurrence"},{"char":"性","meaning":"-ness, nature"}],"corrected":true,"correctionNote":"Tone-corrected pinyin to yí (一 becomes 2nd tone before 4th-tone 次); gloss expanded to the natural 'disposable'."},{"hanzi":"干净","pinyin":"gān jìng","pinyinSyllables":[{"text":"gān","tone":1},{"text":"jìng","tone":4}],"english":"clean; tidy","partOfSpeech":"adj.","subgroup":"Daily Life & Objects","usageNote":"The common adjective for clean/tidy; 净 is here full 4th tone (often lightened in fast speech). Common collocations: 很干净 (very clean), 打扫干净 (clean thoroughly), 吃干净 (eat it all up).","example":{"hanzi":"房间很干净。","pinyin":"Fángjiān hěn gānjìng.","english":"The room is very clean."},"charBreakdown":[{"char":"干","meaning":"dry"},{"char":"净","meaning":"clean, pure"}],"corrected":false,"correctionNote":""},{"hanzi":"丢失","pinyin":"diū shī","pinyinSyllables":[{"text":"diū","tone":1},{"text":"shī","tone":1}],"english":"to lose; to be lost (of objects)","partOfSpeech":"v.","subgroup":"Daily Life & Objects","usageNote":"A slightly formal word for losing an item (luggage, documents, data); for everyday speech 丢 alone is common. Common collocations: 丢失行李 (lose luggage), 丢失文件 (lose documents).","example":{"hanzi":"我的行李丢失了。","pinyin":"Wǒ de xínglǐ diūshī le.","english":"My luggage was lost."},"charBreakdown":[{"char":"丢","meaning":"to lose, throw"},{"char":"失","meaning":"to lose, miss"}],"corrected":false,"correctionNote":""}],"issues":[]},{"id":"attributes","title":"5. Attributes, Measurements & Quality","intro":"Descriptive terms and units that define the quality or quantity of things.","entries":[{"hanzi":"深","pinyin":"shēn","pinyinSyllables":[{"text":"shēn","tone":1}],"english":"deep; (of color) dark","partOfSpeech":"adj.","subgroup":"Descriptive Pairs","usageNote":"Describes physical depth (water, holes) and metaphorical depth (knowledge, feelings, relationships). Also means a dark/deep shade of color, as in 深红 (deep red); the opposite is 浅.","example":{"hanzi":"这条河很深。","pinyin":"Zhè tiáo hé hěn shēn.","english":"This river is very deep."},"charBreakdown":[{"char":"深","meaning":"deep"}],"corrected":false,"correctionNote":""},{"hanzi":"浅","pinyin":"qiǎn","pinyinSyllables":[{"text":"qiǎn","tone":3}],"english":"shallow; (of color) light, pale","partOfSpeech":"adj.","subgroup":"Descriptive Pairs","usageNote":"The opposite of 深: shallow water or shallow knowledge (肤浅 means superficial). Also a light/pale color shade, e.g. 浅蓝色 (light blue).","example":{"hanzi":"这里的水很浅。","pinyin":"Zhèlǐ de shuǐ hěn qiǎn.","english":"The water here is very shallow."},"charBreakdown":[{"char":"浅","meaning":"shallow"}],"corrected":false,"correctionNote":""},{"hanzi":"大","pinyin":"dà","pinyinSyllables":[{"text":"dà","tone":4}],"english":"big; large; great","partOfSpeech":"adj.","subgroup":"Descriptive Pairs","usageNote":"One of the most common adjectives, covering size, age (大 means older, as in 大哥, eldest brother), and degree (大雨, heavy rain). Opposite of 小.","example":{"hanzi":"这个房子很大。","pinyin":"Zhège fángzi hěn dà.","english":"This house is very big."},"charBreakdown":[{"char":"大","meaning":"big"}],"corrected":false,"correctionNote":""},{"hanzi":"小","pinyin":"xiǎo","pinyinSyllables":[{"text":"xiǎo","tone":3}],"english":"small; little; young","partOfSpeech":"adj.","subgroup":"Descriptive Pairs","usageNote":"Opposite of 大. Describes size and youth; also used affectionately before names or to mean younger (小王 = young Wang). Common in 小心 (be careful).","example":{"hanzi":"我的房间很小。","pinyin":"Wǒ de fángjiān hěn xiǎo.","english":"My room is very small."},"charBreakdown":[{"char":"小","meaning":"small"}],"corrected":false,"correctionNote":""},{"hanzi":"强","pinyin":"qiáng","pinyinSyllables":[{"text":"qiáng","tone":2}],"english":"strong; powerful","partOfSpeech":"adj.","subgroup":"Descriptive Pairs","usageNote":"Refers to strength, power, or intensity (a strong country, strong ability), not physical heaviness. Common in 坚强 (resilient) and 强大 (mighty); opposite is 弱 (weak).","example":{"hanzi":"他的能力很强。","pinyin":"Tā de nénglì hěn qiáng.","english":"His ability is very strong."},"charBreakdown":[{"char":"强","meaning":"strong"}],"corrected":false,"correctionNote":""},{"hanzi":"轻","pinyin":"qīng","pinyinSyllables":[{"text":"qīng","tone":1}],"english":"light (in weight); gentle","partOfSpeech":"adj.","subgroup":"Descriptive Pairs","usageNote":"Opposite of 重 (heavy). Describes low weight and also gentleness/softness of action (轻轻地 = gently). Found in 年轻 (young) and 轻松 (relaxed).","example":{"hanzi":"这个包很轻。","pinyin":"Zhège bāo hěn qīng.","english":"This bag is very light."},"charBreakdown":[{"char":"轻","meaning":"light"}],"corrected":false,"correctionNote":""},{"hanzi":"重","pinyin":"zhòng","pinyinSyllables":[{"text":"zhòng","tone":4}],"english":"heavy; serious, important","partOfSpeech":"adj.","subgroup":"Descriptive Pairs","usageNote":"Pronounced zhòng for weight/seriousness (重要 = important, 严重 = serious); opposite of 轻. Note the same character is read chóng when it means 'again/repeat' (e.g. 重新).","example":{"hanzi":"这个箱子很重。","pinyin":"Zhège xiāngzi hěn zhòng.","english":"This box is very heavy."},"charBreakdown":[{"char":"重","meaning":"heavy"}],"corrected":false,"correctionNote":""},{"hanzi":"公斤","pinyin":"gōngjīn","pinyinSyllables":[{"text":"gōng","tone":1},{"text":"jīn","tone":1}],"english":"kilogram (kg)","partOfSpeech":"measure word","subgroup":"Measurements & Directions","usageNote":"The metric kilogram, used as a measure word for weight (三公斤苹果 = three kilograms of apples). The everyday Chinese unit 斤 (jīn) is half a kilogram (500g).","example":{"hanzi":"我买了两公斤米。","pinyin":"Wǒ mǎi le liǎng gōngjīn mǐ.","english":"I bought two kilograms of rice."},"charBreakdown":[{"char":"公","meaning":"metric / public"},{"char":"斤","meaning":"catty (unit of weight)"}],"corrected":false,"correctionNote":""},{"hanzi":"磅","pinyin":"bàng","pinyinSyllables":[{"text":"bàng","tone":4}],"english":"pound (unit of weight, lb); scale","partOfSpeech":"measure word","subgroup":"Measurements & Directions","usageNote":"The imperial pound (about 0.45 kg), a loanword used as a measure word for weight. Less common than 公斤 in daily mainland use; can also mean a weighing scale (磅秤).","example":{"hanzi":"这块肉有两磅。","pinyin":"Zhè kuài ròu yǒu liǎng bàng.","english":"This piece of meat is two pounds."},"charBreakdown":[{"char":"磅","meaning":"pound (weight)"}],"corrected":false,"correctionNote":""},{"hanzi":"对面","pinyin":"duìmiàn","pinyinSyllables":[{"text":"duì","tone":4},{"text":"miàn","tone":4}],"english":"opposite (side); across from","partOfSpeech":"n.","subgroup":"Measurements & Directions","usageNote":"A position word meaning the side directly facing or across from something (银行在对面 = the bank is across the street). Often paired with 在...的对面 (across from...).","example":{"hanzi":"学校在我家对面。","pinyin":"Xuéxiào zài wǒ jiā duìmiàn.","english":"The school is opposite my home."},"charBreakdown":[{"char":"对","meaning":"facing / opposite"},{"char":"面","meaning":"side / face"}],"corrected":false,"correctionNote":""},{"hanzi":"西方","pinyin":"xīfāng","pinyinSyllables":[{"text":"xī","tone":1},{"text":"fāng","tone":1}],"english":"the West; Western (world)","partOfSpeech":"n.","subgroup":"Measurements & Directions","usageNote":"Refers to the West as a cultural/geographic region (西方国家 = Western countries; 西方文化 = Western culture). For the plain compass direction 'west' use 西 or 西边.","example":{"hanzi":"他喜欢西方音乐。","pinyin":"Tā xǐhuān xīfāng yīnyuè.","english":"He likes Western music."},"charBreakdown":[{"char":"西","meaning":"west"},{"char":"方","meaning":"direction / side"}],"corrected":false,"correctionNote":""},{"hanzi":"先","pinyin":"xiān","pinyinSyllables":[{"text":"xiān","tone":1}],"english":"first; in advance; earlier","partOfSpeech":"adv.","subgroup":"Measurements & Directions","usageNote":"An adverb placed before a verb to mean doing something first/beforehand (你先走 = you go first). Common in the pattern 先...再... (first... then...) and in 先生 (Mr./sir).","example":{"hanzi":"我们先吃饭吧。","pinyin":"Wǒmen xiān chīfàn ba.","english":"Let's eat first."},"charBreakdown":[{"char":"先","meaning":"first / earlier"}],"corrected":false,"correctionNote":""},{"hanzi":"中","pinyin":"zhōng","pinyinSyllables":[{"text":"zhōng","tone":1}],"english":"center; middle; in the midst of","partOfSpeech":"n.","subgroup":"Measurements & Directions","usageNote":"Read zhōng for center/middle (中间 = the middle, 中国 = China, lit. 'central country'); also marks an ongoing state (...中 = in progress). Read zhòng when it means to hit a target (中奖 = win a prize).","example":{"hanzi":"他坐在中间。","pinyin":"Tā zuò zài zhōngjiān.","english":"He sits in the middle."},"charBreakdown":[{"char":"中","meaning":"center / middle"}],"corrected":false,"correctionNote":""}],"issues":[]},{"id":"actions","title":"6. Actions & Verbs","intro":"Common actions and activities.","entries":[{"hanzi":"画","pinyin":"huà","pinyinSyllables":[{"text":"huà","tone":4}],"english":"Draw; paint; (n.) painting, picture","partOfSpeech":"v./n.","subgroup":"","usageNote":"As a verb it means to draw or paint, not to write text. Very commonly reduplicated as 画画 (to draw/paint pictures); as a noun a painting takes the measure word 幅 (一幅画).","example":{"hanzi":"我喜欢画画。","pinyin":"Wǒ xǐhuan huà huà.","english":"I like to draw."},"charBreakdown":[{"char":"画","meaning":"draw, paint"}],"corrected":true,"correctionNote":"Removed the gloss \"write\" (that sense is 写); 画 means to draw/paint, with an added noun sense."},{"hanzi":"写生","pinyin":"xiě shēng","pinyinSyllables":[{"text":"xiě","tone":3},{"text":"shēng","tone":1}],"english":"Sketch or paint from life (from nature or a live subject)","partOfSpeech":"v./n.","subgroup":"","usageNote":"An art term: to draw or paint directly from real scenery or a live model rather than from imagination or a photo. Common collocation 出去写生 (go out sketching from life).","example":{"hanzi":"我们去公园写生。","pinyin":"Wǒmen qù gōngyuán xiěshēng.","english":"We're going to the park to sketch from life."},"charBreakdown":[{"char":"写","meaning":"depict, write"},{"char":"生","meaning":"life, living thing"}],"corrected":false,"correctionNote":""},{"hanzi":"学习","pinyin":"xué xí","pinyinSyllables":[{"text":"xué","tone":2},{"text":"xí","tone":2}],"english":"Learn; study","partOfSpeech":"v./n.","subgroup":"","usageNote":"The general, slightly formal word for studying or learning; can take an object (学习中文) or stand alone. Also used figuratively as 向…学习 (to learn from someone).","example":{"hanzi":"我在学习中文。","pinyin":"Wǒ zài xuéxí Zhōngwén.","english":"I'm studying Chinese."},"charBreakdown":[{"char":"学","meaning":"learn, study"},{"char":"习","meaning":"practice, review"}],"corrected":false,"correctionNote":""},{"hanzi":"往返","pinyin":"wǎng fǎn","pinyinSyllables":[{"text":"wǎng","tone":3},{"text":"fǎn","tone":3}],"english":"Travel back and forth; make a round trip","partOfSpeech":"v.","subgroup":"","usageNote":"Formal or written register for going to a place and back. Most common collocation 往返票 / 往返机票 (round-trip ticket); the colloquial equivalent is 来回.","example":{"hanzi":"往返票多少钱?","pinyin":"Wǎngfǎn piào duōshao qián?","english":"How much is a round-trip ticket?"},"charBreakdown":[{"char":"往","meaning":"go toward"},{"char":"返","meaning":"return"}],"corrected":false,"correctionNote":""},{"hanzi":"注意","pinyin":"zhù yì","pinyinSyllables":[{"text":"zhù","tone":4},{"text":"yì","tone":4}],"english":"Pay attention to; take note of; be careful of","partOfSpeech":"v.","subgroup":"","usageNote":"Takes its object directly (注意安全, 注意身体) and appears in warnings like 请注意. The resultative 注意到 means \"to notice\" something.","example":{"hanzi":"注意安全!","pinyin":"Zhùyì ānquán!","english":"Be careful! (pay attention to safety)"},"charBreakdown":[{"char":"注","meaning":"concentrate, focus"},{"char":"意","meaning":"mind, intention"}],"corrected":false,"correctionNote":""},{"hanzi":"放心","pinyin":"fàng xīn","pinyinSyllables":[{"text":"fàng","tone":4},{"text":"xīn","tone":1}],"english":"Rest assured; feel at ease; stop worrying","partOfSpeech":"v.","subgroup":"","usageNote":"A verb-object phrase used to reassure others, as in 你放心 / 请放心. It is separable and can be intensified, e.g. 放一百个心 (be completely reassured).","example":{"hanzi":"你放心吧。","pinyin":"Nǐ fàngxīn ba.","english":"Don't worry."},"charBreakdown":[{"char":"放","meaning":"put down, release"},{"char":"心","meaning":"heart, mind"}],"corrected":false,"correctionNote":""},{"hanzi":"充电","pinyin":"chōng diàn","pinyinSyllables":[{"text":"chōng","tone":1},{"text":"diàn","tone":4}],"english":"Charge (a battery); recharge; (fig.) recharge oneself, brush up skills","partOfSpeech":"v.","subgroup":"","usageNote":"Literally to charge a device, usually as 给…充电 (给手机充电). It is separable (充了一会儿电) and is also used figuratively for resting or learning to \"recharge\" oneself.","example":{"hanzi":"我要给手机充电。","pinyin":"Wǒ yào gěi shǒujī chōngdiàn.","english":"I need to charge my phone."},"charBreakdown":[{"char":"充","meaning":"fill, charge"},{"char":"电","meaning":"electricity"}],"corrected":false,"correctionNote":""},{"hanzi":"关","pinyin":"guān","pinyinSyllables":[{"text":"guān","tone":1}],"english":"Close; shut; turn off","partOfSpeech":"v.","subgroup":"","usageNote":"Used for closing things (关门, 关窗) and turning off appliances or lights (关灯, 关电视); its opposite is 开 (open / turn on).","example":{"hanzi":"请关门。","pinyin":"Qǐng guān mén.","english":"Please close the door."},"charBreakdown":[{"char":"关","meaning":"close, shut off"}],"corrected":false,"correctionNote":""},{"hanzi":"看","pinyin":"kàn","pinyinSyllables":[{"text":"kàn","tone":4}],"english":"Look at; watch; read; see","partOfSpeech":"v.","subgroup":"","usageNote":"A broad verb covering looking, watching, and reading (看书 read a book, 看电视 watch TV, 看医生 see a doctor). 我看… can also mean \"I think / in my view.\"","example":{"hanzi":"我在看电视。","pinyin":"Wǒ zài kàn diànshì.","english":"I'm watching TV."},"charBreakdown":[{"char":"看","meaning":"look, watch"}],"corrected":false,"correctionNote":""},{"hanzi":"听","pinyin":"tīng","pinyinSyllables":[{"text":"tīng","tone":1}],"english":"Listen; hear","partOfSpeech":"v.","subgroup":"","usageNote":"To listen, as in 听音乐 (listen to music); 听话 means to obey / be obedient. The resultatives 听到 / 听见 express \"to hear\" (perceive a sound).","example":{"hanzi":"我喜欢听音乐。","pinyin":"Wǒ xǐhuan tīng yīnyuè.","english":"I like listening to music."},"charBreakdown":[{"char":"听","meaning":"listen, hear"}],"corrected":false,"correctionNote":""}],"issues":[]},{"id":"interests","title":"7. Interests & Seasons","intro":"Personal preferences and the passage of time.","entries":[{"hanzi":"兴趣","pinyin":"xìng qù","pinyinSyllables":[{"text":"xìng","tone":4},{"text":"qù","tone":4}],"english":"interest (in something)","partOfSpeech":"n.","subgroup":"","usageNote":"The standard noun for an interest or hobby-level enthusiasm. The most common pattern is 对…(感)兴趣 'be interested in', e.g. 对…有兴趣 (have interest in) or 对…感兴趣 (feel interested in); note 兴 is read xìng here, not xīng.","example":{"hanzi":"我对音乐有兴趣。","pinyin":"Wǒ duì yīnyuè yǒu xìngqù.","english":"I'm interested in music."},"charBreakdown":[{"char":"兴","meaning":"interest; mood"},{"char":"趣","meaning":"fun; delight"}],"corrected":false,"correctionNote":""},{"hanzi":"音乐","pinyin":"yīn yuè","pinyinSyllables":[{"text":"yīn","tone":1},{"text":"yuè","tone":4}],"english":"music","partOfSpeech":"n.","subgroup":"","usageNote":"Everyday word for music; the verb 'listen to' pairs with it as 听音乐. Note 乐 is read yuè ('music') here, not lè ('happy'); related compounds include 音乐会 (concert) and 音乐家 (musician).","example":{"hanzi":"我喜欢听音乐。","pinyin":"Wǒ xǐhuan tīng yīnyuè.","english":"I like listening to music."},"charBreakdown":[{"char":"音","meaning":"sound; tone"},{"char":"乐","meaning":"music"}],"corrected":false,"correctionNote":""},{"hanzi":"冬天","pinyin":"dōng tiān","pinyinSyllables":[{"text":"dōng","tone":1},{"text":"tiān","tone":1}],"english":"winter","partOfSpeech":"n.","subgroup":"","usageNote":"The colloquial everyday word for the winter season; 天 here means 'season/time' rather than 'day'. Pairs naturally with weather adjectives, e.g. 冬天很冷 (winter is cold); the more formal/written synonym is 冬季.","example":{"hanzi":"冬天很冷。","pinyin":"Dōngtiān hěn lěng.","english":"Winter is very cold."},"charBreakdown":[{"char":"冬","meaning":"winter"},{"char":"天","meaning":"day; season"}],"corrected":false,"correctionNote":""}],"issues":[]}];
+
+const VALID = Array.isArray(DATA) && DATA.length && DATA[0] && typeof DATA[0] === 'object' && Array.isArray(DATA[0].entries);
+
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function norm(s){ return (s==null?'':String(s)).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }
+function tone(n){ return (n>=1 && n<=5) ? n : 5; }
+
+if(!VALID){
+  document.getElementById('subtitle').textContent = 'Data not injected yet — this is the template shell.';
+  document.getElementById('tableView').innerHTML = '<p class="empty">No data has been injected into this file yet.</p>';
+} else {
+  init();
+}
+
+function init(){
+  // ---- flatten + index ----
+  const ENTRIES = [];
+  let uid = 0;
+  DATA.forEach(cat=>{
+    cat.entries.forEach(e=>{
+      e._uid = uid++;
+      e._cat = cat.title;
+      e._catId = cat.id;
+      const plain = norm(e.pinyin);
+      e._search = [norm(e.hanzi), plain, plain.replace(/\s+/g,''), norm(e.english), norm(e.partOfSpeech)].join(' ');
+      ENTRIES.push(e);
+    });
+  });
+
+  const totalCount = ENTRIES.length;
+  const correctedCount = ENTRIES.filter(e=>e.corrected).length;
+
+  // ---- DOM ----
+  const $ = id => document.getElementById(id);
+  const searchEl=$('search'), catEl=$('categoryFilter'), posEl=$('posFilter'),
+        sortEl=$('sortBy'), onlyEl=$('onlyCorrections'),
+        tableView=$('tableView'), navEl=$('sectionNav'), countEl=$('count'),
+        bannerEl=$('banner'), subtitleEl=$('subtitle');
+
+  subtitleEl.textContent = totalCount + ' terms · ' + DATA.length + ' topics · pinyin tone-colored · with usage notes & examples';
+
+  // ---- filters population ----
+  catEl.innerHTML = '<option value="">All topics</option>' +
+    DATA.map(c=>`<option value="${esc(c.id)}">${esc(c.title)}</option>`).join('');
+  const posList = Array.from(new Set(ENTRIES.map(e=>e.partOfSpeech).filter(Boolean))).sort();
+  posEl.innerHTML = '<option value="">All types</option>' +
+    posList.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');
+
+  navEl.innerHTML = DATA.map(c=>`<a href="#cat-${esc(c.id)}" data-nav="${esc(c.id)}">${esc(c.title)}</a>`).join('');
+
+  if(correctedCount){
+    bannerEl.innerHTML = `<div class="banner"><b>${correctedCount} ${correctedCount===1?'entry was':'entries were'} corrected</b> from your original notes (wrong tones, merged or duplicate words). Each is flagged with ✏️ — tick <b>“Only ✏️”</b> above to review just those.</div>`;
+  }
+
+  // ---- state ----
+  let allExpanded = false;
+
+  function currentQuery(){ return norm(searchEl.value.trim()); }
+  function matches(e){
+    if(catEl.value && e._catId !== catEl.value) return false;
+    if(posEl.value && e.partOfSpeech !== posEl.value) return false;
+    if(onlyEl.checked && !e.corrected) return false;
+    const q = currentQuery();
+    if(q && !e._search.includes(q)) return false;
+    return true;
+  }
+  function filteredFlat(){ return ENTRIES.filter(matches); }
+
+  function pinyinHTML(e){
+    if(Array.isArray(e.pinyinSyllables) && e.pinyinSyllables.length){
+      return e.pinyinSyllables.map(s=>`<span class="t${tone(s.tone)}">${esc(s.text)}</span>`).join(' ');
+    }
+    return esc(e.pinyin);
+  }
+
+  function entryRowsHTML(e, showCat){
+    const badge = e.corrected ? `<button class="badge" title="${esc(e.correctionNote)}" aria-label="Corrected: ${esc(e.correctionNote)}">✏️</button>` : '';
+    const cat = showCat ? `<div class="cat-chip">${esc(e._cat)}</div>` : '';
+    const ex = (e.example && e.example.hanzi)
+      ? `<div class="d-block card-ex"><span class="d-label">Example</span>
+           <p class="ex-hanzi">${esc(e.example.hanzi)}</p>
+           <p class="ex-pinyin">${esc(e.example.pinyin)}</p>
+           <p class="ex-eng">${esc(e.example.english)}</p></div>` : '';
+    const chars = (Array.isArray(e.charBreakdown) && e.charBreakdown.length)
+      ? `<div class="d-block"><span class="d-label">Characters</span>
+           <div class="chars">${e.charBreakdown.map(c=>`<span class="char-chip"><b>${esc(c.char)}</b>${esc(c.meaning)}</span>`).join('')}</div></div>` : '';
+    const usage = e.usageNote ? `<div class="d-block"><span class="d-label">Usage</span><p>${esc(e.usageNote)}</p></div>` : '';
+    const corr = e.corrected ? `<div class="d-block correction"><span class="d-label">✏️ Correction</span><p>${esc(e.correctionNote)}</p></div>` : '';
+    const open = allExpanded ? ' open' : '';
+    const exp = allExpanded ? ' expanded' : '';
+    return `<tr class="row${exp}" data-uid="${e._uid}">
+        <td class="c-hanzi"><span class="hanzi">${esc(e.hanzi)}</span>${badge}${cat}</td>
+        <td class="c-pinyin">${pinyinHTML(e)}</td>
+        <td class="c-eng">${esc(e.english)}</td>
+        <td class="c-pos">${esc(e.partOfSpeech)}</td>
+        <td class="c-caret"><span class="caret">▸</span></td>
+      </tr>
+      <tr class="detail${open}" data-detail="${e._uid}"><td colspan="5"><div class="detail-inner">${usage}${ex}${chars}${corr}</div></td></tr>`;
+  }
+
+  function tableHTML(entries, showCat){
+    return `<table class="vocab"><thead><tr>
+        <th class="c-hanzi">汉字</th><th class="c-pinyin">Pinyin</th>
+        <th class="c-eng">English</th><th class="c-pos">Type</th><th class="c-caret"></th>
+      </tr></thead><tbody>${entries.map(e=>entryRowsHTML(e, showCat)).join('')}</tbody></table>`;
+  }
+
+  function sortEntries(list, mode){
+    const by = {
+      pinyin: e=>norm(e.pinyin),
+      english: e=>norm(e.english),
+      pos: e=>e.partOfSpeech+' '+norm(e.pinyin)
+    }[mode];
+    return list.slice().sort((a,b)=> by(a) < by(b) ? -1 : by(a) > by(b) ? 1 : 0);
+  }
+  function sortLabel(m){ return {pinyin:'pinyin (A–Z)', english:'English (A–Z)', pos:'word type'}[m] || m; }
+
+  function render(){
+    const mode = sortEl.value;
+    let html = '';
+    if(mode === 'topic'){
+      html = DATA.filter(c=> !catEl.value || c.id===catEl.value).map(cat=>{
+        const es = cat.entries.filter(matches);
+        if(!es.length) return '';
+        const subs = []; const map = {};
+        es.forEach(e=>{ const k=e.subgroup||''; if(!(k in map)){ map[k]=[]; subs.push(k);} map[k].push(e); });
+        const body = subs.map(k => (k?`<h3 class="subhead">${esc(k)}</h3>`:'') + tableHTML(map[k], false)).join('');
+        return `<section class="cat" id="cat-${esc(cat.id)}"><h2>${esc(cat.title)}</h2><p class="intro">${esc(cat.intro)}</p>${body}</section>`;
+      }).join('');
+    } else {
+      const es = sortEntries(filteredFlat(), mode);
+      html = es.length ? `<section class="cat"><h2>Sorted by ${esc(sortLabel(mode))} <span class="muted">(${es.length})</span></h2>${tableHTML(es, true)}</section>` : '';
+    }
+    tableView.innerHTML = html || '<p class="empty">No matches — try clearing the search or filters.</p>';
+    updateCount();
+  }
+
+  function updateCount(){
+    const n = filteredFlat().length;
+    countEl.textContent = `${n} of ${totalCount} shown · ${correctedCount} corrected`;
+  }
+
+  // ---- row expand/collapse (event delegation) ----
+  tableView.addEventListener('click', ev=>{
+    const row = ev.target.closest('tr.row');
+    if(!row) return;
+    const detail = tableView.querySelector(`tr.detail[data-detail="${row.dataset.uid}"]`);
+    const isOpen = row.classList.toggle('expanded');
+    if(detail) detail.classList.toggle('open', isOpen);
+  });
+
+  $('expandAll').addEventListener('click', ()=>{
+    allExpanded = !allExpanded;
+    $('expandAll').textContent = allExpanded ? 'Collapse all' : 'Expand all';
+    tableView.querySelectorAll('tr.row').forEach(r=>r.classList.toggle('expanded', allExpanded));
+    tableView.querySelectorAll('tr.detail').forEach(d=>d.classList.toggle('open', allExpanded));
+  });
+
+  // ---- nav ----
+  navEl.addEventListener('click', ev=>{
+    const a = ev.target.closest('a[data-nav]');
+    if(!a) return;
+    ev.preventDefault();
+    if(sortEl.value!=='topic'){ sortEl.value='topic'; render(); }
+    const el = document.getElementById('cat-'+a.dataset.nav);
+    if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+  });
+
+  // ---- filter wiring ----
+  [searchEl, catEl, posEl, sortEl, onlyEl].forEach(el=>{
+    el.addEventListener('input', render);
+    el.addEventListener('change', render);
+  });
+
+  // ================= STUDY MODE =================
+  let deck = [], pos = 0, flipped = false, dir = 'hanzi';
+  const known = new Set();
+
+  function shuffleInPlace(arr){
+    for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=arr[i]; arr[i]=arr[j]; arr[j]=t; }
+    return arr;
+  }
+  function buildDeck(){
+    const mode = sortEl.value;
+    deck = (mode==='topic') ? filteredFlat() : sortEntries(filteredFlat(), mode);
+    pos = 0; flipped = false;
+  }
+  function cardFrontHTML(e){
+    if(dir==='hanzi') return `<div class="card-hanzi">${esc(e.hanzi)}</div><div class="flip-hint">tap or press Space to reveal</div>`;
+    return `<div class="card-prompt-eng">${esc(e.english)}</div><div class="card-pos">${esc(e.partOfSpeech)}</div><div class="flip-hint">tap or press Space to reveal</div>`;
+  }
+  function cardBackHTML(e){
+    const ex = (e.example && e.example.hanzi) ? `<div class="card-ex card-sub"><span class="lab">Example</span><p class="e1">${esc(e.example.hanzi)}</p><p class="e2">${esc(e.example.pinyin)}</p><p class="e3">${esc(e.example.english)}</p></div>` : '';
+    const usage = e.usageNote ? `<div class="card-sub"><span class="lab">Usage</span><p>${esc(e.usageNote)}</p></div>` : '';
+    return `<div class="card-hanzi">${esc(e.hanzi)}</div>
+            <div class="card-pinyin">${pinyinHTML(e)}</div>
+            <div class="card-eng">${esc(e.english)} <span class="card-pos">· ${esc(e.partOfSpeech)}</span></div>
+            ${usage}${ex}`;
+  }
+  function renderCard(){
+    const card=$('card'), prog=$('studyProgress'), meta=$('studyMeta');
+    if(!deck.length){ card.innerHTML='<div class="card-eng">No cards match your current filters.</div>'; prog.textContent=''; meta.textContent=''; return; }
+    if(pos>=deck.length) pos=deck.length-1;
+    const e = deck[pos];
+    card.innerHTML = flipped ? cardBackHTML(e) : cardFrontHTML(e);
+    prog.textContent = `${pos+1} / ${deck.length}`;
+    meta.innerHTML = `<span class="known-pill">✓ ${known.size} known</span> · reviewing ${deck.length} card${deck.length===1?'':'s'}`;
+  }
+  function go(delta){ if(!deck.length) return; pos=(pos+delta+deck.length)%deck.length; flipped=false; renderCard(); }
+  function enterStudy(){ buildDeck(); document.body.classList.add('study-active'); renderCard(); window.scrollTo(0,0); }
+  function exitStudy(){ document.body.classList.remove('study-active'); }
+
+  $('studyToggle').addEventListener('click', enterStudy);
+  $('studyExit').addEventListener('click', exitStudy);
+  $('card').addEventListener('click', ()=>{ flipped=!flipped; renderCard(); });
+  $('studyFlip').addEventListener('click', ()=>{ flipped=!flipped; renderCard(); });
+  $('studyNext').addEventListener('click', ()=>go(1));
+  $('studyPrev').addEventListener('click', ()=>go(-1));
+  $('studyShuffle').addEventListener('click', ()=>{ shuffleInPlace(deck); pos=0; flipped=false; renderCard(); });
+  $('studyDir').addEventListener('click', ()=>{
+    dir = dir==='hanzi' ? 'meaning' : 'hanzi';
+    $('studyDir').textContent = dir==='hanzi' ? 'Prompt: 汉字 → meaning' : 'Prompt: meaning → 汉字';
+    flipped=false; renderCard();
+  });
+  $('studyGot').addEventListener('click', ()=>{ if(deck.length){ known.add(deck[pos]._uid); go(1); } });
+  $('studyAgain').addEventListener('click', ()=>{ if(deck.length){ known.delete(deck[pos]._uid); go(1); } });
+
+  document.addEventListener('keydown', ev=>{
+    if(!document.body.classList.contains('study-active')) return;
+    if(ev.key===' '){ ev.preventDefault(); flipped=!flipped; renderCard(); }
+    else if(ev.key==='ArrowRight'){ go(1); }
+    else if(ev.key==='ArrowLeft'){ go(-1); }
+    else if(ev.key==='Escape'){ exitStudy(); }
+  });
+
+  // ---- first paint ----
+  render();
+}
+</script>
+</body>
+</html>
