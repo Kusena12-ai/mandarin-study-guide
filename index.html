@@ -115,6 +115,20 @@
   .empty{color:var(--muted);padding:30px 4px;text-align:center}
   .muted{color:var(--muted);font-weight:400;font-size:14px}
 
+  /* Pronunciation */
+  .speak{border:none;background:transparent;cursor:pointer;font-size:14px;line-height:1;padding:1px 4px;border-radius:6px;color:var(--accent);vertical-align:middle}
+  .speak:hover{background:var(--accent-soft)}
+  .pron{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:3px}
+  .pron-btn{font:inherit;font-size:12.5px;cursor:pointer;background:var(--surface);border:1px solid var(--border-strong);border-radius:999px;padding:4px 10px;color:var(--ink);transition:all .12s;line-height:1.3}
+  .pron-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .pron-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .pron-btn:disabled{opacity:.45;cursor:default}
+  .pron-status{font-size:12.5px;color:var(--muted);min-height:1em;flex-basis:100%}
+  .pron-status .ok{color:var(--t3);font-weight:600}
+  .pron-status .no{color:var(--t1);font-weight:600}
+  .card .pron{justify-content:center}
+  .pron-note{margin:7px 0 2px;color:var(--faint);font-size:12px;line-height:1.5}
+
   /* Tone legend */
   .legend{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:8px 0 2px;color:var(--muted);font-size:12.5px}
   .legend .item{display:inline-flex;align-items:center;gap:5px}
@@ -202,6 +216,7 @@
     <span class="item"><span class="swatch t4">mà</span> 4th</span>
     <span class="item"><span class="swatch t5">ma</span> neutral</span>
   </div>
+  <div class="pron-note">🔊 hear · 🐢 slow · 🎤 record yourself · ▶ play it back · ✓ auto-check. Mic features need the online <b>https</b> link + microphone permission; auto-check works best in <b>Chrome/Edge</b>.</div>
   <div id="banner"></div>
   <div id="tableView"></div>
 </main>
@@ -239,6 +254,98 @@ const VALID = Array.isArray(DATA) && DATA.length && DATA[0] && typeof DATA[0] ==
 function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function norm(s){ return (s==null?'':String(s)).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }
 function tone(n){ return (n>=1 && n<=5) ? n : 5; }
+
+/* ---------------- Pronunciation: TTS, recording, recognition ---------------- */
+const speech = {
+  voice:null,
+  pick(){ try{ const vs=speechSynthesis.getVoices(); this.voice = vs.find(v=>/zh[-_]?CN/i.test(v.lang)) || vs.find(v=>/^zh/i.test(v.lang)) || null; }catch(_){} },
+  speak(text,{slow=false}={}){
+    if(!('speechSynthesis' in window) || !text) return;
+    try{
+      speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang='zh-CN'; if(this.voice) u.voice=this.voice; u.rate=slow?0.5:0.9;
+      speechSynthesis.speak(u);
+    }catch(_){}
+  }
+};
+if('speechSynthesis' in window){ speech.pick(); speechSynthesis.onvoiceschanged=()=>speech.pick(); }
+
+const practice = {
+  rec:null, chunks:[], stream:null, recordings:new Map(),
+  async toggle(uid, statusEl, onState){
+    if(this.rec && this.rec.state==='recording'){ this.rec.stop(); return; }
+    if(!('MediaRecorder' in window) || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      if(statusEl) statusEl.innerHTML='<span class="no">Recording needs a modern browser over https.</span>'; return;
+    }
+    try{ if(!this.stream) this.stream=await navigator.mediaDevices.getUserMedia({audio:true}); }
+    catch(err){ if(statusEl) statusEl.innerHTML='<span class="no">🎤 Microphone blocked — allow mic access (and use the https link).</span>'; return; }
+    this.chunks=[];
+    try{ this.rec=new MediaRecorder(this.stream); }catch(_){ if(statusEl) statusEl.textContent='Could not start recording.'; return; }
+    this.rec.ondataavailable=ev=>{ if(ev.data && ev.data.size) this.chunks.push(ev.data); };
+    this.rec.onstop=()=>{
+      const blob=new Blob(this.chunks,{type:(this.rec&&this.rec.mimeType)||'audio/webm'});
+      const url=URL.createObjectURL(blob);
+      const old=this.recordings.get(uid); if(old) URL.revokeObjectURL(old);
+      this.recordings.set(uid,url); onState('recorded');
+    };
+    this.rec.start(); onState('recording');
+  },
+  playMine(uid){ const url=this.recordings.get(uid); if(url){ try{ new Audio(url).play(); }catch(_){} } }
+};
+
+const Recog = window.SpeechRecognition || window.webkitSpeechRecognition;
+function checkPron(target, statusEl){
+  if(!statusEl) return;
+  if(!Recog){ statusEl.innerHTML='<span class="no">Auto-check needs Chrome or Edge.</span>'; return; }
+  let r; try{ r=new Recog(); }catch(_){ statusEl.textContent='Could not start recognition.'; return; }
+  r.lang='zh-CN'; r.interimResults=false; r.maxAlternatives=5;
+  const clean=s=>(s||'').replace(/[\s，。、！？,.!?·]/g,'');
+  const tgt=clean(target);
+  statusEl.innerHTML='<span class="ok">🎤 listening… say it now</span>';
+  r.onresult=ev=>{
+    const alts=Array.from(ev.results[0]).map(a=>clean(a.transcript));
+    const heard=alts[0]||'';
+    const hit=alts.some(a=>a===tgt || (tgt.length>1 && a.includes(tgt)));
+    statusEl.innerHTML = hit
+      ? `<span class="ok">✓ Correct! heard “${esc(heard)}”</span>`
+      : `<span class="no">✗ heard “${esc(heard||'…')}” — try again</span>`;
+  };
+  r.onerror=ev=>{ statusEl.innerHTML='<span class="no">'+(ev.error==='not-allowed'?'🎤 Mic blocked — allow access.':'Recognition error: '+esc(ev.error))+'</span>'; };
+  try{ r.start(); }catch(_){}
+}
+
+function pronPanel(uid, text){
+  const t=esc(text);
+  const hasRec = practice.recordings.has(uid);
+  return `<div class="pron" data-pron="${uid}">
+    <button class="pron-btn" data-act="hear" data-text="${t}" title="Hear it">🔊 Hear</button>
+    <button class="pron-btn" data-act="slow" data-text="${t}" title="Hear it slowly">🐢 Slow</button>
+    <button class="pron-btn" data-act="record" data-uid="${uid}" title="Record yourself">🎤 Record</button>
+    <button class="pron-btn" data-act="playmine" data-uid="${uid}" title="Play your recording"${hasRec?'':' disabled'}>▶ Mine</button>
+    <button class="pron-btn" data-act="check" data-text="${t}" title="Auto-check (Chrome/Edge)">✓ Check</button>
+    <span class="pron-status"></span>
+  </div>`;
+}
+
+// global delegation for all pronunciation controls (tables + flashcards)
+document.addEventListener('click', ev=>{
+  const btn=ev.target.closest('.pron-btn, .speak'); if(!btn) return;
+  ev.stopPropagation();
+  if(btn.classList.contains('speak')){ speech.speak(btn.dataset.text||'',{slow:false}); return; }
+  const panel=btn.closest('.pron'); const statusEl=panel?panel.querySelector('.pron-status'):null;
+  const act=btn.dataset.act;
+  if(act==='hear') speech.speak(btn.dataset.text||'',{slow:false});
+  else if(act==='slow') speech.speak(btn.dataset.text||'',{slow:true});
+  else if(act==='check') checkPron(btn.dataset.text||'', statusEl);
+  else if(act==='playmine') practice.playMine(btn.dataset.uid);
+  else if(act==='record'){
+    practice.toggle(btn.dataset.uid, statusEl, state=>{
+      if(state==='recording'){ btn.textContent='⏹ Stop'; btn.classList.add('on'); if(statusEl) statusEl.textContent='● recording… click stop'; }
+      else { btn.textContent='🎤 Record'; btn.classList.remove('on'); if(statusEl) statusEl.textContent='saved — press ▶ Mine to play it back'; if(panel){ const pm=panel.querySelector('[data-act="playmine"]'); if(pm) pm.disabled=false; } }
+    });
+  }
+});
 
 if(!VALID){
   document.getElementById('subtitle').textContent = 'Data not injected yet — this is the template shell.';
@@ -313,7 +420,7 @@ function init(){
     const cat = showCat ? `<div class="cat-chip">${esc(e._cat)}</div>` : '';
     const ex = (e.example && e.example.hanzi)
       ? `<div class="d-block card-ex"><span class="d-label">Example</span>
-           <p class="ex-hanzi">${esc(e.example.hanzi)}</p>
+           <p class="ex-hanzi">${esc(e.example.hanzi)} <button class="speak" data-text="${esc(e.example.hanzi)}" title="Hear sentence" aria-label="Hear example sentence">🔊</button></p>
            <p class="ex-pinyin">${esc(e.example.pinyin)}</p>
            <p class="ex-eng">${esc(e.example.english)}</p></div>` : '';
     const chars = (Array.isArray(e.charBreakdown) && e.charBreakdown.length)
@@ -321,16 +428,17 @@ function init(){
            <div class="chars">${e.charBreakdown.map(c=>`<span class="char-chip"><b>${esc(c.char)}</b>${esc(c.meaning)}</span>`).join('')}</div></div>` : '';
     const usage = e.usageNote ? `<div class="d-block"><span class="d-label">Usage</span><p>${esc(e.usageNote)}</p></div>` : '';
     const corr = e.corrected ? `<div class="d-block correction"><span class="d-label">✏️ Correction</span><p>${esc(e.correctionNote)}</p></div>` : '';
+    const pron = `<div class="d-block"><span class="d-label">Say it &amp; practice</span>${pronPanel(e._uid, e.hanzi)}</div>`;
     const open = allExpanded ? ' open' : '';
     const exp = allExpanded ? ' expanded' : '';
     return `<tr class="row${exp}" data-uid="${e._uid}">
-        <td class="c-hanzi"><span class="hanzi">${esc(e.hanzi)}</span>${badge}${cat}</td>
+        <td class="c-hanzi"><span class="hanzi">${esc(e.hanzi)}</span><button class="speak" data-text="${esc(e.hanzi)}" title="Hear it" aria-label="Hear ${esc(e.hanzi)}">🔊</button>${badge}${cat}</td>
         <td class="c-pinyin">${pinyinHTML(e)}</td>
         <td class="c-eng">${esc(e.english)}</td>
         <td class="c-pos">${esc(e.partOfSpeech)}</td>
         <td class="c-caret"><span class="caret">▸</span></td>
       </tr>
-      <tr class="detail${open}" data-detail="${e._uid}"><td colspan="5"><div class="detail-inner">${usage}${ex}${chars}${corr}</div></td></tr>`;
+      <tr class="detail${open}" data-detail="${e._uid}"><td colspan="5"><div class="detail-inner">${usage}${ex}${chars}${pron}${corr}</div></td></tr>`;
   }
 
   function tableHTML(entries, showCat){
@@ -377,6 +485,7 @@ function init(){
 
   // ---- row expand/collapse (event delegation) ----
   tableView.addEventListener('click', ev=>{
+    if(ev.target.closest('.pron-btn, .speak')) return;
     const row = ev.target.closest('tr.row');
     if(!row) return;
     const detail = tableView.querySelector(`tr.detail[data-detail="${row.dataset.uid}"]`);
@@ -421,16 +530,17 @@ function init(){
     pos = 0; flipped = false;
   }
   function cardFrontHTML(e){
-    if(dir==='hanzi') return `<div class="card-hanzi">${esc(e.hanzi)}</div><div class="flip-hint">tap or press Space to reveal</div>`;
+    if(dir==='hanzi') return `<div class="card-hanzi">${esc(e.hanzi)} <button class="speak" data-text="${esc(e.hanzi)}" title="Hear it">🔊</button></div><div class="flip-hint">tap elsewhere or press Space to reveal</div>`;
     return `<div class="card-prompt-eng">${esc(e.english)}</div><div class="card-pos">${esc(e.partOfSpeech)}</div><div class="flip-hint">tap or press Space to reveal</div>`;
   }
   function cardBackHTML(e){
     const ex = (e.example && e.example.hanzi) ? `<div class="card-ex card-sub"><span class="lab">Example</span><p class="e1">${esc(e.example.hanzi)}</p><p class="e2">${esc(e.example.pinyin)}</p><p class="e3">${esc(e.example.english)}</p></div>` : '';
     const usage = e.usageNote ? `<div class="card-sub"><span class="lab">Usage</span><p>${esc(e.usageNote)}</p></div>` : '';
-    return `<div class="card-hanzi">${esc(e.hanzi)}</div>
+    return `<div class="card-hanzi">${esc(e.hanzi)} <button class="speak" data-text="${esc(e.hanzi)}" title="Hear it">🔊</button></div>
             <div class="card-pinyin">${pinyinHTML(e)}</div>
             <div class="card-eng">${esc(e.english)} <span class="card-pos">· ${esc(e.partOfSpeech)}</span></div>
-            ${usage}${ex}`;
+            ${usage}${ex}
+            <div class="card-sub"><span class="lab">Say it &amp; practice</span>${pronPanel(e._uid, e.hanzi)}</div>`;
   }
   function renderCard(){
     const card=$('card'), prog=$('studyProgress'), meta=$('studyMeta');
@@ -447,7 +557,7 @@ function init(){
 
   $('studyToggle').addEventListener('click', enterStudy);
   $('studyExit').addEventListener('click', exitStudy);
-  $('card').addEventListener('click', ()=>{ flipped=!flipped; renderCard(); });
+  $('card').addEventListener('click', (ev)=>{ if(ev.target.closest('.pron-btn, .speak')) return; flipped=!flipped; renderCard(); });
   $('studyFlip').addEventListener('click', ()=>{ flipped=!flipped; renderCard(); });
   $('studyNext').addEventListener('click', ()=>go(1));
   $('studyPrev').addEventListener('click', ()=>go(-1));
